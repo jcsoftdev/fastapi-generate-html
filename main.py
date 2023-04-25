@@ -11,6 +11,12 @@ from fastapi.responses import HTMLResponse, StreamingResponse
 
 app = FastAPI()
 
+@app.get("/", response_class=HTMLResponse)
+async def show_html():
+    with open('./index.html', 'r') as html_file:
+        content = html_file.read()
+        return content
+    
 @app.post("/generate_html")
 async def generate_html(file: UploadFile = File(...)):
     # Create a temporary directory to extract the uploaded ZIP file
@@ -86,9 +92,3 @@ img {
             'Content-Length': str(file_size),
         })
 
-
-@app.get("/", response_class=HTMLResponse)
-async def show_html():
-    with open('./index.html', 'r') as html_file:
-        content = html_file.read()
-        return content
