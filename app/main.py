@@ -92,3 +92,8 @@ img {
             'Content-Length': str(file_size),
         })
 
+@app.post("/hello-world")
+def hello_world(file: UploadFile = File(...)):
+    return {"filename": file.filename}
+
+# hellos

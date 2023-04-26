@@ -92,7 +92,7 @@
         function generateHtml() {
             const fileInput = document.getElementById('file-input');
             const file = fileInput.files[0];
-            if (!file || file.type !== 'application/zip') {
+            if (!file || file.type.includes('zip') === false) {
                 alert('Please select a ZIP file');
                 return;
             }

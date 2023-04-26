@@ -1,2 +1,4 @@
 .space
 venv
+app/__pycache__
+.devcontainer
