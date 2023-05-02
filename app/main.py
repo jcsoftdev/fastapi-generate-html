@@ -46,11 +46,13 @@ async def generate_html(file: UploadFile = File(...)):
         html_file_path = os.path.join(temp_dir, 'index.html')
         with open(html_file_path, 'w') as html_file:
             html_file.write("""
-<!DOCTYPE html>
-<html lang="en">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office">
 <head>
 <meta charset="UTF-8">
 <style>
+table {
+ border-collapse: collapse;
+}
 body {
     max-width: 650px;
     margin: 0 auto;
@@ -61,13 +63,22 @@ body {
 img {
     display: block;
 }
+
 </style>
 </head>
 <body>
+<table cellspacing="0" border="0" fr-original-style cellpadding="0">
+<tbody>
             """)
             for row in rows:
-                html_file.write('<div class="row">\n')
+                # html_file.write('<tr class="row">\n')
+                html_file.write("""
+                <table cellspacing="0" border="0" fr-original-style cellpadding="0">
+                <tbody>
+                <tr>
+                """)
                 for image in row:
+                    html_file.write('<td >\n')
                     if image["Link"]:
                         html_file.write(f'<a href="{image["Link"]}">')
                     image_path = os.path.join(temp_dir, 'images', image["Image Name"])
@@ -78,10 +89,18 @@ img {
                     html_file.write(f'<img src="data:image/png;base64,{base64.b64encode(open(image_path, "rb").read()).decode()}" alt="{image["Subject"]}" title="{image["Subject"]}">')
                     if image["Link"]:
                         html_file.write('</a>')
-                    html_file.write('\n')
-                html_file.write('</div>\n')
-            html_file.write('</body>\n')
-            html_file.write('</html>\n')
+                    html_file.write('</td>\n')
+                html_file.write("""
+                </tr>
+                </tbody>
+                </table>
+                """)
+            html_file.write("""
+</tbody>
+</table>
+</body>
+</html>
+            """)
 
         # Return the generated HTML file for download
         file_name = 'index.html'
