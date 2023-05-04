@@ -5,9 +5,11 @@ import shutil
 import tempfile
 import zipfile
 from io import BytesIO
+from typing import Optional
 
-from fastapi import FastAPI, File, UploadFile
-from fastapi.responses import HTMLResponse, StreamingResponse
+import pandas as pd
+from fastapi import FastAPI, File, Form, Response, UploadFile
+from fastapi.responses import HTMLResponse, Response, StreamingResponse
 
 app = FastAPI()
 
@@ -17,6 +19,12 @@ async def show_html():
         content = html_file.read()
         return content
     
+@app.get("/excel", response_class=HTMLResponse)
+async def show_html():
+    with open('./excel_parser.html', 'r') as html_file:
+        content = html_file.read()
+        return content
+ 
 @app.post("/generate_html")
 async def generate_html(file: UploadFile = File(...)):
     # Create a temporary directory to extract the uploaded ZIP file
@@ -115,4 +123,56 @@ img {
 def hello_world(file: UploadFile = File(...)):
     return {"filename": file.filename}
 
-# hellos
+
+# @app.post("/filter_excel")
+# async def filter_excel(header_row: int, filter_word: str, file: UploadFile = File(...)):
+#     # Load the Excel file into a DataFrame, with column names from the specified header row
+#     df = pd.read_excel(file.file, header=header_row-1)
+
+#     # Filter the DataFrame by the specified keyword in the "Load Work Type" column
+#     filtered_df = df[df['Load Work Type'].str.contains(filter_word)]
+
+#     # Write the filtered DataFrame to a new sheet in the same Excel file
+#     excel_file = BytesIO()
+#     with pd.ExcelWriter(excel_file, engine='xlsxwriter') as writer:
+#         filtered_df.to_excel(writer, sheet_name='Filtered')
+
+#     # Set the file pointer to the beginning of the stream
+#     excel_file.seek(0)
+
+#     # Create the response object with the Excel file contents
+#     response = Response(content=excel_file.getvalue(),
+#                         media_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+#                         headers={'Content-Disposition': f'attachment; filename="filtered_excel.xlsx"'})
+
+#     return response
+
+@app.post("/filter_excel")
+async def filter_excel(
+    header_row: Optional[int] = Form(None),
+    new_sheet_name: Optional[str] = Form(None),
+    filter_word: str = Form(...),
+    file: UploadFile = File(...)):
+
+    header_row = int(header_row or 2)
+    new_sheet_name = new_sheet_name or 'Filtered Data'
+    # Leer el archivo Excel en un DataFrame
+    excel_file = BytesIO(await file.read())
+    df = pd.read_excel(excel_file, header=header_row-1)
+
+    # Aplicar el filtro al DataFrame
+    filtered_df = df[df['Load Work Type'].str.contains(filter_word)]
+
+    # Agregar una hoja nueva con los datos filtrados
+    with pd.ExcelWriter(excel_file, engine='openpyxl', mode='a') as writer:
+        filtered_df.to_excel(writer, sheet_name=new_sheet_name)
+
+    # Establecer el puntero del archivo al inicio del stream
+    excel_file.seek(0)
+
+    # Crear el objeto de respuesta con el contenido del archivo Excel
+    response = Response(content=excel_file.getvalue(),
+                        media_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+                        headers={'Content-Disposition': f'attachment; filename="{new_sheet_name}.xlsx"'})
+
+    return response

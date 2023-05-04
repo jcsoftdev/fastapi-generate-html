@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="UTF-8">
+  <title>Filter Excel Form</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/css/bootstrap.min.css" rel="stylesheet"
+    integrity="sha384-KK94CHFLLe+nY2dmCWGMq91rCGa5gtU4mk92HdvYe+M/SXH301p5ILy+dN9+nJOZ" crossorigin="anonymous">
+  <style>
+    form {
+      max-width: 600px;
+    }
+  </style>
+</head>
+
+<body>
+  <h1 class="text-center mt-5 mb-5">Filter Excel</h1>
+  <form id="filter-form" class="container">
+    <div class="row">
+
+      <div class="col-8">
+        <p>Required fields (*)</p>
+        <div class=" mb-3">
+          <input type="text" class="form-control" name="filter_word" name="filter_word" required>
+          <div class="form-text">Filter Word</div>
+        </div>
+        <div class="mb-3">
+          <input class="form-control" type="file" id="file" name="file" required>
+          <div class="form-text">Excel file</div>
+        </div>
+      </div>
+      <div class="col-4">
+        <p>Optional fields</p>
+        <div class=" mb-3">
+          <input type="text" class="form-control" aria-label="Header start row" name="header_row">
+          <div class="form-text">Header start row</div>
+        </div>
+
+        <div class=" mb-3">
+          <input type="text" class="form-control" aria-label="New Sheet Name" name="new_sheet_name">
+          <div class="form-text">New Sheet Name</div>
+        </div>
+      </div>
+    </div>
+
+    <button type="submit" class="btn btn-primary">Filter Excel</button>
+    <div id="output" class="mt-3"></div>
+
+
+  </form>
+
+
+  <script>
+    const form = document.getElementById('filter-form');
+    form.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      output.innerHTML = 'Filtering...';
+      const formData = new FormData(form);
+      try {
+        // Hacer una petición POST al endpoint de filter_excel con los datos del formulario
+        const response = await fetch("/filter_excel", {
+          method: "POST",
+          body: formData,
+        });
+
+        if (!response.ok) {
+          // Mostrar un mensaje de error si la petición falla
+          throw new Error(response.statusText);
+        }
+
+        const fileName = response.headers.get('Content-Disposition').split('filename=')[1];
+        // Convertir la respuesta a un Blob (archivo binario) y crear una URL para descargarlo
+        const blob = await response.blob();
+        const downloadUrl = URL.createObjectURL(blob);
+        // Crear un enlace para descargar el archivo
+        const link = document.createElement('a');
+        link.href = downloadUrl;
+        link.download = 'filtered_excel.xlsx';
+        link.innerHTML = 'Download Excel';
+        // Mostrar el enlace para descargar el archivo en la página
+        const output = document.getElementById('output');
+        output.appendChild(link);
+      } catch (error) {
+        // Mostrar un mensaje de error si la petición falla
+        output.innerHTML = 'hubo un error';
+        console.error(error);
+        alert('Ocurrió un error al filtrar el archivo de Excel.');
+      }
+    });
+  </script>
+</body>
+
+</html>
