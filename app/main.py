@@ -37,7 +37,7 @@ async def generate_html(file: UploadFile = File(...)):
             reader = csv.DictReader(csv_file)
             data = [row for row in reader]
 
-        data.sort(key=lambda x: x['Image Name'])
+        # data.sort(key=lambda x: x['Image Name'])
 
         rows = []
         current_row = []

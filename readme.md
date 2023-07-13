@@ -21,3 +21,21 @@ pip install -r requirements.txt
 ```bash
 uvicorn main:app --reload
 ```
+
+# with docker
+
+1. build the image
+
+```bash
+docker build -t fastapi-generate-html .
+```
+2. run the container
+
+```bash
+docker run -d --name fastapi-generate-html -p 8000:80 fastapi-generate-html
+```
+or with docker-compose
+
+```bash
+docker-compose up -d
+```
